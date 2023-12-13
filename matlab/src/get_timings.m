@@ -1,5 +1,7 @@
+function timings = get_timings(eprime_csv)
+
 warning('off','MATLAB:table:ModifiedAndSavedVarnames')
-eprime = readtable('../../OUTPUTS/eprime.csv');
+eprime = readtable(eprime_csv);
 
 % Run 1
 
@@ -27,4 +29,13 @@ run1.fmri_onset_sec = run1.onset_sec ...
     - run1.onset_sec(strcmp(run1.condition,'scanstart'));
 run1.fmri_offset_sec = run1.fmri_onset_sec + run1.duration_sec;
 
-sortrows(run1,'fmri_onset_sec')
+% Run label
+run1.run(:) = 1;
+
+run1 = sortrows(run1,'fmri_onset_sec');
+
+
+% Final return value
+timings{1} = run1;
+
+

@@ -19,9 +19,6 @@ for r = 1:4
 	writematrix(mot, fullfile(inp.out_dir,['motpar' num2str(r) '.txt']))
 end
 
-% Load trial timing info
-trials = readtable(inp.eprime_csv);
-
 % Get TRs and check
 N = nifti(inp.swfmri1_nii);
 tr = N.timing.tspace;
@@ -33,8 +30,14 @@ for r = 2:4
 end
 fprintf('ALERT: USING TR OF %0.3f sec FROM FMRI NIFTI\n',tr)
 
+% Load condition timing info
+timings = get_timings(inp.eprime_csv);
+
 
 %% Design
+
+% FIXME WE ARE HERE
+
 clear matlabbatch
 matlabbatch{1}.spm.stats.fmri_spec.dir = ...
 	{fullfile(inp.out_dir,['spm_' tag])};
