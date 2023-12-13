@@ -33,6 +33,8 @@ fprintf('ALERT: USING TR OF %0.3f sec FROM FMRI NIFTI\n',tr)
 % Load condition timing info
 timings = get_timings(inp.eprime_csv);
 
+% FIXME need the other three runs
+
 
 %% Design
 
