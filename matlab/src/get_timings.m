@@ -101,7 +101,7 @@ run4 = [run4; parsefun(eprime,'RESPONSE7','response')];
 run4.fmri_onset_sec = run4.onset_sec ...
     - run4.onset_sec(strcmp(run4.condition,'scanstart'));
 run4.fmri_offset_sec = run4.fmri_onset_sec + run4.duration_sec;
-run4.run(:) = 3;
+run4.run(:) = 4;
 run4 = sortrows(run4,'fmri_onset_sec');
 
 
