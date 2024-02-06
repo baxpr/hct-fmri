@@ -1,4 +1,4 @@
-# Start with FSL, ImageMagick, python3/pandas base docker
+# Start with FSL, ImageMagick, python3/pandas, xvfb base docker
 FROM baxterprogers/fsl-base:v6.0.5.2
 
 # Matlab reqs
@@ -7,7 +7,7 @@ RUN apt-get -y update && \
     apt-get clean
         
 # Install the MCR
-RUN wget -nv https://ssd.mathworks.com/supportfiles/downloads/R2019b/Release/6/deployment_files/installer/complete/glnxa64/MATLAB_Runtime_R2019b_Update_6_glnxa64.zip \
+RUN wget -nv https://ssd.mathworks.com/supportfiles/downloads/R2023a/Release/6/deployment_files/installer/complete/glnxa64/MATLAB_Runtime_R2023a_Update_6_glnxa64.zip \
      -O /opt/mcr_installer.zip && \
      unzip /opt/mcr_installer.zip -d /opt/mcr_installer && \
     /opt/mcr_installer/install -mode silent -agreeToLicense yes && \
