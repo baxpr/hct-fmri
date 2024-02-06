@@ -1,6 +1,6 @@
 function first_level_stats_hct(inp)
 
-% Block design, three predictors: heart, sun, fixation
+% Block design, four predictors: anticipate, heart, sun, fixation
 % Some 5-sec rest sections are left out in the model (motion is expected)
 % Contrasts of interest will be
 %      heart vs fixation
@@ -33,8 +33,6 @@ fprintf('ALERT: USING TR OF %0.3f sec FROM FMRI NIFTI\n',tr)
 % Load condition timing info
 timings = get_timings(inp.eprime_csv);
 
-% FIXME need the other three runs
-
 
 %% Design
 
@@ -56,12 +54,7 @@ matlabbatch{1}.spm.stats.fmri_spec.mask = {[spm('dir') '/tpm/mask_ICV.nii']};
 matlabbatch{1}.spm.stats.fmri_spec.cvi = 'AR(1)';
 
 for r = 1:4
-	
-	% Initialize
-	thist = trials(trials.Run==r,:);
-	ind = ismember(thist.Outcome,{'Win','Lose'});
-	c = 0;
-	
+
 	% Session-specific scans, regressors, params
 	matlabbatch{1}.spm.stats.fmri_spec.sess(r).scans = ...
 		{inp.(['swfmri' num2str(r) '_nii'])};
@@ -72,35 +65,19 @@ for r = 1:4
 		{fullfile(inp.out_dir,['motpar' num2str(r) '.txt'])};
 	matlabbatch{1}.spm.stats.fmri_spec.sess(r).hpf = hpf_sec;
 	
-	% Condition: Cue
-	c = c + 1;
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).name = 'Cue';
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).onset = ...
-		thist.T1_TrialStart_fMRIsec(ind);
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).duration = 0;
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).tmod = 0;
+    % Conditions
+    for cond = {'anticipate','heart','counting','fixation'}
+    	c = c + 1;
+    	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).name = cond;
+    	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).onset = ...
+    		timings{r}.fmri_onset_sec(strcmp(timings{r}.condition,cond));
+    	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).duration = ...
+    		timings{r}.fmri_duration_sec(strcmp(timings{r}.condition,cond));
+    	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).tmod = 0;
+    end
 
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).pmod(1).name = 'mu33';
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).pmod(1).param = thist.traj_mu_33(ind);
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).pmod(1).poly = 1;
-
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).orth = 1;
-
-	% Condition: Feedback
-	c = c + 1;
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).name = 'Feedback';
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).onset = ...
-		thist.T3_FeedbackOnset_fMRIsec(ind);
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).duration = 0;
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).tmod = 0;
-
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).pmod(1).name = 'epsi3';
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).pmod(1).param = thist.traj_epsi_3(ind);
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).pmod(1).poly = 1;
-
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).orth = 1;	
-	
 end
+
 
 %% Estimate
 matlabbatch{2}.spm.stats.fmri_est.spmmat = ...
@@ -110,48 +87,30 @@ matlabbatch{2}.spm.stats.fmri_est.method.Classical = 1;
 
 
 %% Contrasts
-%
-% Parameters per session SPM.xX.name' are
-%    {'Sn(1) Cue*bf(1)'             }
-%    {'Sn(1) Cuexmu33^1*bf(1)'      }
-%    {'Sn(1) Feedback*bf(1)'        }
-%    {'Sn(1) Feedbackxepsi3^1*bf(1)'}
-%    {'Sn(1) R1'                    }
-%    {'Sn(1) R2'                    }
-%    {'Sn(1) R3'                    }
-%    {'Sn(1) R4'                    }
-%    {'Sn(1) R5'                    }
-%    {'Sn(1) R6'                    }
 matlabbatch{3}.spm.stats.con.spmmat = ...
 	matlabbatch{2}.spm.stats.fmri_est.spmmat;
 matlabbatch{3}.spm.stats.con.delete = 1;
 c = 0;
 
 c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Cue';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [1 0 0 0];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Anticipate gt Fixation';
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [1 0 0 -1];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Cue x Mu33';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 0 0];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Heart gt Fixation';
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 0 -1];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Feedback';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 1 0];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Counting gt Fixation';
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 1 -1];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Feedback x Epsi3';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 1];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Heart gt Counting';
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 -1 0];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
-
-c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Cue + Feedback';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0.5 0 0.5 0];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
-
 
 % Inverse of all existing contrasts since SPM won't show us both sides
 numc = numel(matlabbatch{3}.spm.stats.con.consess);
@@ -201,7 +160,7 @@ writetable(connames,fullfile(inp.out_dir,['spm_contrast_names_' tag '.csv']));
 xSPM = struct( ...
     'swd', matlabbatch{1}.spm.stats.fmri_spec.dir, ...
     'title', '', ...
-    'Ic', 1, ...
+    'Ic', 2, ...
     'n', 0, ...
     'Im', [], ...
     'pm', [], ...

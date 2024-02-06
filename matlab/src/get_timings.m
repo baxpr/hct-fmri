@@ -1,6 +1,7 @@
 function timings = get_timings(eprime_csv)
 
 warning('off','MATLAB:table:ModifiedAndSavedVarnames')
+warning('off','MATLAB:table:RowsAddedExistingVars')
 eprime = readtable(eprime_csv);
 
 %% Run 1
