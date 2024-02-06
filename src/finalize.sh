@@ -6,10 +6,7 @@ cd "${out_dir}"
 
 # Zip nifti files in SPM outputs
 for d in \
-    spm_cue_orth0 \
-    spm_cue_orth1_epsi2 \
-    spm_cue_orth1_mu33 \
-    spm_cue_mu3_feedback_epsi3_orth1 \
+    spm_hct \
 ; do
     gzip "${d}"/*.nii
 done
