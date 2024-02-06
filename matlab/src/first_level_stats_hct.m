@@ -35,9 +35,6 @@ timings = get_timings(inp.eprime_csv);
 
 
 %% Design
-
-% FIXME WE ARE HERE
-
 clear matlabbatch
 matlabbatch{1}.spm.stats.fmri_spec.dir = ...
 	{fullfile(inp.out_dir,['spm_' tag])};
@@ -66,13 +63,14 @@ for r = 1:4
 	matlabbatch{1}.spm.stats.fmri_spec.sess(r).hpf = hpf_sec;
 	
     % Conditions
+    c = 0;
     for cond = {'anticipate','heart','counting','fixation'}
     	c = c + 1;
-    	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).name = cond;
+    	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).name = cond{1};
     	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).onset = ...
     		timings{r}.fmri_onset_sec(strcmp(timings{r}.condition,cond));
     	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).duration = ...
-    		timings{r}.fmri_duration_sec(strcmp(timings{r}.condition,cond));
+    		timings{r}.duration_sec(strcmp(timings{r}.condition,cond));
     	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).tmod = 0;
     end
 
