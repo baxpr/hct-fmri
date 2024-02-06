@@ -29,7 +29,7 @@ COPY README.md /opt/hct-fmri/README.md
 ENV PATH /opt/hct-fmri/src:/opt/hct-fmri/matlab/bin:${PATH}
 
 # Matlab executable must be run at build to extract the CTF archive
-#RUN run_spm12.sh ${MATLAB_RUNTIME} function quit
+RUN run_spm12.sh ${MATLAB_RUNTIME} function quit
 
 # Entrypoint
 ENTRYPOINT ["pipeline_entrypoint.sh"]
