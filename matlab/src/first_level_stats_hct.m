@@ -12,17 +12,25 @@ tag = 'hct';
 % Filter param
 hpf_sec = str2double(inp.hpf_sec);
 
+% Select available runs
+runs =[];
+if ~strcmp(inp.fmri1_nii,'NONE'), runs = [runs 1]; end
+if ~strcmp(inp.fmri2_nii,'NONE'), runs = [runs 2]; end
+if ~strcmp(inp.fmri3_nii,'NONE'), runs = [runs 3]; end
+if ~strcmp(inp.fmri4_nii,'NONE'), runs = [runs 4]; end
+
+
 % Save motion params as .mat
-for r = 1:4
+for r = runs
 	mot = readtable(inp.(['motpar' num2str(r) '_txt']),'FileType','text');
 	mot = zscore(table2array(mot(:,1:6)));
 	writematrix(mot, fullfile(inp.out_dir,['motpar' num2str(r) '.txt']))
 end
 
 % Get TRs and check
-N = nifti(inp.swfmri1_nii);
+N = nifti(inp.(['swfmri' num2str(runs(1)) '_nii']));
 tr = N.timing.tspace;
-for r = 2:4
+for r = runs(2:end)
 	N = nifti(inp.(['swfmri' num2str(r) '_nii']));
 	if abs(N.timing.tspace-tr) > 0.001
 		error('TR not matching for run %d',r)
@@ -50,28 +58,31 @@ matlabbatch{1}.spm.stats.fmri_spec.mthresh = -Inf;
 matlabbatch{1}.spm.stats.fmri_spec.mask = {[spm('dir') '/tpm/mask_ICV.nii']};
 matlabbatch{1}.spm.stats.fmri_spec.cvi = 'AR(1)';
 
-for r = 1:4
+rct = 0;
+for r = runs
+
+    rct = rct + 1;
 
 	% Session-specific scans, regressors, params
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).scans = ...
+	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).scans = ...
 		{inp.(['swfmri' num2str(r) '_nii'])};
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).multi = {''};
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).regress = ...
+	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi = {''};
+	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress = ...
 		struct('name', {}, 'val', {});
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).multi_reg = ...
+	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi_reg = ...
 		{fullfile(inp.out_dir,['motpar' num2str(r) '.txt'])};
-	matlabbatch{1}.spm.stats.fmri_spec.sess(r).hpf = hpf_sec;
+	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).hpf = hpf_sec;
 	
     % Conditions
     c = 0;
     for cond = {'anticipate','heart','counting','fixation'}
     	c = c + 1;
-    	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).name = cond{1};
-    	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).onset = ...
+    	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).cond(c).name = cond{1};
+    	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).cond(c).onset = ...
     		timings{r}.fmri_onset_sec(strcmp(timings{r}.condition,cond));
-    	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).duration = ...
+    	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).cond(c).duration = ...
     		timings{r}.duration_sec(strcmp(timings{r}.condition,cond));
-    	matlabbatch{1}.spm.stats.fmri_spec.sess(r).cond(c).tmod = 0;
+    	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).cond(c).tmod = 0;
     end
 
 end
