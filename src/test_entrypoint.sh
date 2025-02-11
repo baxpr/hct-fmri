@@ -1,35 +1,23 @@
 #!/usr/bin/env bash
 
-export fmri1_niigz=$(pwd)/../INPUTS/fmri1.nii.gz
-export fmri2_niigz=$(pwd)/../INPUTS/fmri2.nii.gz
-export fmri3_niigz=$(pwd)/../INPUTS/fmri3.nii.gz
-export fmri4_niigz=$(pwd)/../INPUTS/fmri4.nii.gz
-export fmritopup_niigz=$(pwd)/../INPUTS/fmritopup.nii.gz
-export seg_niigz=$(pwd)/../INPUTS/seg.nii.gz
-export icv_niigz=$(pwd)/../INPUTS/icv.nii.gz
-export deffwd_niigz=$(pwd)/../INPUTS/y_deffwd.nii.gz
-export biascorr_niigz=$(pwd)/../INPUTS/biascorr.nii.gz
-export biasnorm_niigz=$(pwd)/../INPUTS/biasnorm.nii.gz
-export trialreport_csv=$(pwd)/../INPUTS/trialreport.csv
-export out_dir=$(pwd)/../OUTPUTS
+export PATH=$(pwd):$(pwd)/../matlab/bin:$PATH
 
-export pedir=+j
-export vox_mm=2
-export hpf_sec=200
-export fwhm_mm=6
-export refimg_nii=avg152T1.nii
+pipeline_entrypoint.sh \
+    --fmri1_niigz $(pwd)/../INPUTS/run1.nii.gz \
+    --fmri2_niigz $(pwd)/../INPUTS/run2.nii.gz \
+    --fmri3_niigz $(pwd)/../INPUTS/run3.nii.gz \
+    --fmri4_niigz NONE \
+    --fmritopup_niigz $(pwd)/../INPUTS/topup.nii.gz \
+    --seg_niigz $(pwd)/../INPUTS/seg.nii.gz \
+    --icv_niigz $(pwd)/../INPUTS/p0t1.nii.gz \
+    --refimg_nii avg152T1.nii \
+    --deffwd_niigz $(pwd)/../INPUTS/y_t1.nii.gz \
+    --biascorr_niigz $(pwd)/../INPUTS/mt1.nii.gz \
+    --biasnorm_niigz $(pwd)/../INPUTS/wmt1.nii.gz \
+    --eprime_txt $(pwd)/../INPUTS/eprime.txt \
+    --pedir '+j' \
+    --vox_mm 2 \
+    --hpf_sec 200 \
+    --fwhm_mm 6 \
+    --out_dir $(pwd)/../OUTPUTS
 
-# Initialize Freesurfer
-. $FREESURFER_HOME/SetUpFreeSurfer.sh
-
-# Copy inputs to the working directory
-copy_inputs.sh
-
-# FSL based motion correction, topup, registration
-fsl_processing.sh
-
-# Unzip .nii for matlab/spm
-gunzip "${out_dir}"/ctrrfmri?.nii.gz \
-    "${out_dir}"/ctrrfmri_mean_all.nii.gz \
-    "${out_dir}"/biasnorm.nii.gz \
-    "${out_dir}"/y_deffwd.nii.gz
