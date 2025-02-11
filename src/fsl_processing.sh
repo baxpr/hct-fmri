@@ -45,7 +45,7 @@ for n in 1 2 3 4; do
     echo "    Run ${n}"
     if [[ -f fmri${n}.nii.gz ]]; then
         mcflirt -in fmri${n} -meanvol -out rfmri${n} -plots
-    done
+    fi
 done
 
 echo "    Topup run"
@@ -68,7 +68,7 @@ for n in $(seq ${first} 4); do
         flirt ${opts} -in rfmri${n}_mean_reg -ref rrfmri1_mean_reg \
             -out rrfmri${n}_mean_reg -omat r${n}to1.fslmat
         flirt -applyxfm -init r${n}to1.fslmat -in rfmri${n} -ref rrfmri1_mean_reg -out rrfmri${n}
-    done
+    fi
 done
 
 echo "    Topup run to run 1"
@@ -84,7 +84,7 @@ if [[ -f rrfmri1_mean_reg.nii.gz ]]; then
 else
     c1=""
     d1=""
-done
+fi
 if [[ -f rrfmri2_mean_reg.nii.gz ]]; then 
     c2="-add rrfmri2_mean_reg.nii.gz"
     d2="rrfmri2"
@@ -92,7 +92,7 @@ if [[ -f rrfmri2_mean_reg.nii.gz ]]; then
 else
     c2=""
     d2=""
-done
+fi
 if [[ -f rrfmri3_mean_reg.nii.gz ]]; then 
     c3="-add rrfmri3_mean_reg.nii.gz"
     d3="rrfmri3"
@@ -100,7 +100,7 @@ if [[ -f rrfmri3_mean_reg.nii.gz ]]; then
 else
     c3=""
     d3=""
-done
+fi
 if [[ -f rrfmri4_mean_reg.nii.gz ]]; then 
     c4="-add rrfmri4_mean_reg.nii.gz"
     d4="rrfmri4"
@@ -108,7 +108,7 @@ if [[ -f rrfmri4_mean_reg.nii.gz ]]; then
 else
     c4=""
     d4=""
-done
+fi
 
 fslmaths zeroimg ${c1} ${c2} ${c3} ${c4} \
     -div ${count} rrfmri_mean_all
