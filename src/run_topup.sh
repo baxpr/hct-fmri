@@ -33,7 +33,7 @@ applytopup --imain="${rev}" --inindex=2 --datain=datain.txt \
 	--topup=topup --out=t"${rev}" --method=jac
 
 # Apply topup to actual time series
-for f in "${run1}" "${run2}" "${run3}" "${run4}"; do
+for f in ${run1} ${run2} ${run3} ${run4}; do
     applytopup --imain="${f}" --inindex=1 --datain=datain.txt \
 	    --topup=topup --out=t"${f}" --method=jac
 done
