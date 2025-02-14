@@ -1,5 +1,5 @@
 .DS_Store
-INPUTS
-OUTPUTS
+INPUTS*
+OUTPUTS*
 local*
 matlab/external/spm12_r7771
