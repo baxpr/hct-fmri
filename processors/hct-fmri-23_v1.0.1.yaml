@@ -4,8 +4,8 @@
 procyamlversion: 3.0.0-dev.0
 containers:
   - name: hct-fmri
-    path: hct-fmri_v1.0.1.sif
-    source: docker://baxterprogers/hct-fmri:v1.0.1
+    path: hct-fmri_v1.1.0.sif
+    source: docker://baxterprogers/hct-fmri:v1.1.0
 requirements:
   walltime: 0-8
   memory: 8G
