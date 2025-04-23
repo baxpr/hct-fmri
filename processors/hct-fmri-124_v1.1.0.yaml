@@ -40,7 +40,7 @@ inputs:
         needs_qc: True
 
       - name: scan_fmri4
-        types: HCT_Run3
+        types: HCT_Run4
         resources:
           - {resource: NIFTI, fmatch: '*.nii.gz', fdest: fmri4.nii.gz}
         needs_qc: True
