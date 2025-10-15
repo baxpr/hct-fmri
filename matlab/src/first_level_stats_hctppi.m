@@ -134,7 +134,7 @@ matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 -1 0 0 0];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = [inp.ppi_con '_' inp.voi_name];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = inp.voi_name;
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 1 0];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
