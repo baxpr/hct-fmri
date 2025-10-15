@@ -28,10 +28,10 @@ for r = runs
 end
 
 % Get TRs and check
-N = nifti(inp.(['swfmri' num2str(runs(1)) '_nii']));
+N = nifti(inp.(['fmri' num2str(runs(1)) '_nii']));
 tr = N.timing.tspace;
 for r = runs(2:end)
-	N = nifti(inp.(['swfmri' num2str(r) '_nii']));
+	N = nifti(inp.(['fmri' num2str(r) '_nii']));
 	if abs(N.timing.tspace-tr) > 0.001
 		error('TR not matching for run %d',r)
 	end
@@ -65,7 +65,7 @@ for r = runs
 
 	% Session-specific scans, regressors, params
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).scans = ...
-		{inp.(['swfmri' num2str(r) '_nii'])};
+		{inp.(['fmri' num2str(r) '_nii'])};
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi = {''};
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress = ...
 		struct('name', {}, 'val', {});
@@ -131,6 +131,15 @@ for k = 1:numc
                 - matlabbatch{3}.spm.stats.con.consess{c-numc}.tcon.weights;
         matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 end
+
+% Effects of interest contrasts per session to use with PPI generation
+c = c + 1;
+matlabbatch{3}.spm.stats.con.consess{c}.fcon.name = 'Effects of Interest';
+matlabbatch{3}.spm.stats.con.consess{c}.fcon.weights = [1 0 0 0
+                                                        0 1 0 0
+                                                        0 0 1 0
+                                                        0 0 0 1];
+matlabbatch{3}.spm.stats.con.consess{c}.fcon.sessrep = 'sess';
 
 
 %% Review design

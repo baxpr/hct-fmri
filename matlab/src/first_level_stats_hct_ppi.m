@@ -19,15 +19,12 @@ function first_level_stats_hct_ppi(inp)
 
 %% DRAFT %%%%%%%%%%
 
-matlabbatch{1}.spm.stats.con.spmmat = {'spm_hct/SPM.mat'};
-matlabbatch{1}.spm.stats.con.consess{1}.fcon.name = 'Effects of Interest';
-matlabbatch{1}.spm.stats.con.consess{1}.fcon.weights = [1 0 0 0
-                                                        0 1 0 0
-                                                        0 0 1 0
-                                                        0 0 0 1];
-matlabbatch{1}.spm.stats.con.consess{1}.fcon.sessrep = 'sess';
-matlabbatch{1}.spm.stats.con.delete = 0;
+% Effects of interest contrasts have been added to orig first level run.
+% They will always start at #9 and be one per session labeled
+%    Effects of Interest - Session N
+% etc in SPM.xCon(N).name
 
+% Now we load those results to start building PPI regressors
 matlabbatch{2}.spm.util.voi.spmmat = {'spm_hct/SPM.mat'};
 matlabbatch{2}.spm.util.voi.adjust = 9;
 matlabbatch{2}.spm.util.voi.session = 1;
@@ -38,8 +35,8 @@ matlabbatch{2}.spm.util.voi.expression = 'i1';
 
 matlabbatch{1}.spm.stats.ppi.spmmat = {'spm_hct/SPM.mat'};
 matlabbatch{1}.spm.stats.ppi.type.ppi.voi = {'spm_hct/VOI_testvoi_1.mat'};
-matlabbatch{1}.spm.stats.ppi.type.ppi.u = [2 1 1];  % For heart
-matlabbatch{1}.spm.stats.ppi.name = 'testvoi_2_1_1';
+matlabbatch{1}.spm.stats.ppi.type.ppi.u = [2 1 1; 3 1 -1];  % For heart
+matlabbatch{1}.spm.stats.ppi.name = 'testvoi_Heart_gt_Counting';
 matlabbatch{1}.spm.stats.ppi.disp = 1;
 
 % At this point, what we have is the two PPI time series for this ROI
