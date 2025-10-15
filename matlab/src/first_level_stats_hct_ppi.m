@@ -59,6 +59,11 @@ matlabbatch{1}.spm.stats.ppi.disp = 1;
 % Note also that Andy includes both conditions in a single PPI with a 1 -1
 % contrast, e.g.
 %    ppi.u = [2 1 1; 3 1 -1]  % Heart gt Counting
+%
+% Instead, I think we'll use this procedure to generate adjusted PPI
+% covariates per session, then go back and insert them in the original
+% analysis config as two additional regressors. Then we'll need the
+% additional contrasts for them as well.
 
 
 %% END DRAFT %%%%%%%%%%%%%%%%
