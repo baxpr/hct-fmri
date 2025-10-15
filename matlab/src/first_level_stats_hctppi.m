@@ -115,22 +115,32 @@ c = 0;
 
 c = c + 1;
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Anticipate gt Fixation';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [1 0 0 -1];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [1 0 0 -1 0 0];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Heart gt Fixation';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 0 -1];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 0 -1 0 0];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Counting gt Fixation';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 1 -1];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 1 -1 0 0];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Heart gt Counting';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 -1 0];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 -1 0 0 0];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
+
+c = c + 1;
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = [inp.ppi_con '_' inp.voi_name];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 1 0];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
+
+c = c + 1;
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['PPI_' inp.ppi_con '_' inp.voi_name];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0 1];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 % Inverse of all existing contrasts since SPM won't show us both sides
