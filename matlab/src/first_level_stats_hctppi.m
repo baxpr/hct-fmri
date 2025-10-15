@@ -1,4 +1,4 @@
-function first_level_stats_hct_ppi(inp)
+function first_level_stats_hctppi(inp)
 
 % Block design, four predictors: anticipate, heart, sun, fixation
 % Some 5-sec rest sections are left out in the model (motion is expected)
@@ -7,67 +7,12 @@ function first_level_stats_hct_ppi(inp)
 %      sun vs fixation
 %      heart vs sun
 %
-% PPI regressors added for the supplied VOI, for heart and sun conditions.
-% Probably only the heart vs sun PPI contrast is interpretable, due to
-% expected movement in the rest sections affecting the baseline
-% connectivity estimate.
-%
-% VOIs are created per session. Data can be adjusted, e.g. for movement
-% params - note that "effects of interest" is the contrast specified here,
-% not "effects of no interest".
+% PPI regressors are added
+%    inp.voi_name      % VOI name
+%    inp.ppi_dir       % Where to find PPI files
+%    inp.ppi_con       % 'Heart_gt_Counting'
 
-
-%% DRAFT %%%%%%%%%%
-
-% Effects of interest contrasts have been added to orig first level run.
-% They will always start at #9 and be one per session labeled
-%    Effects of Interest - Session N
-% etc in SPM.xCon(N).name
-
-% Now we load those results to start building PPI regressors
-matlabbatch{2}.spm.util.voi.spmmat = {'spm_hct/SPM.mat'};
-matlabbatch{2}.spm.util.voi.adjust = 9;
-matlabbatch{2}.spm.util.voi.session = 1;
-matlabbatch{2}.spm.util.voi.name = 'testvoi';
-matlabbatch{2}.spm.util.voi.roi{1}.label.image = {'atlas-BAISins_space-MNI152NLin6Asym_res-02_dseg.nii'};
-matlabbatch{2}.spm.util.voi.roi{1}.label.list = 1;
-matlabbatch{2}.spm.util.voi.expression = 'i1';
-
-matlabbatch{1}.spm.stats.ppi.spmmat = {'spm_hct/SPM.mat'};
-matlabbatch{1}.spm.stats.ppi.type.ppi.voi = {'spm_hct/VOI_testvoi_1.mat'};
-matlabbatch{1}.spm.stats.ppi.type.ppi.u = [2 1 1; 3 1 -1];  % For heart
-matlabbatch{1}.spm.stats.ppi.name = 'testvoi_Heart_gt_Counting';
-matlabbatch{1}.spm.stats.ppi.disp = 1;
-
-% At this point, what we have is the two PPI time series for this ROI
-% (after running PPI once for each condition).
-
-% Andy advises concatenating runs:
-% https://andysbrainbook.readthedocs.io/en/latest/SPM/SPM_Short_Course/SPM_PPI.html
-%
-% See also https://www.fil.ion.ucl.ac.uk/spm/docs/manual/ppi/ppi/
-%
-% Note that concatenating movement regressors means they will not be
-% completely removed, as weights may vary between runs. Better to center
-% these and put in their own sections per run?
-% 
-% kron is used to get predictors for the means though.
-%
-% Note also that Andy includes both conditions in a single PPI with a 1 -1
-% contrast, e.g.
-%    ppi.u = [2 1 1; 3 1 -1]  % Heart gt Counting
-%
-% Instead, I think we'll use this procedure to generate adjusted PPI
-% covariates per session, then go back and insert them in the original
-% analysis config as two additional regressors. Then we'll need the
-% additional contrasts for them as well.
-
-
-%% END DRAFT %%%%%%%%%%%%%%%%
-
-
-
-tag = ['hctppi-' inp.voiname];
+tag = 'hctppi';
 
 % Filter param
 hpf_sec = str2double(inp.hpf_sec);
@@ -88,10 +33,10 @@ for r = runs
 end
 
 % Get TRs and check
-N = nifti(inp.(['swfmri' num2str(runs(1)) '_nii']));
+N = nifti(inp.(['fmri' num2str(runs(1)) '_nii']));
 tr = N.timing.tspace;
 for r = runs(2:end)
-	N = nifti(inp.(['swfmri' num2str(r) '_nii']));
+	N = nifti(inp.(['fmri' num2str(r) '_nii']));
 	if abs(N.timing.tspace-tr) > 0.001
 		error('TR not matching for run %d',r)
 	end
@@ -123,13 +68,20 @@ for r = runs
 
     rct = rct + 1;
 
+    % Find our PPI regressors for this session (by SPM count, not original
+    % scanner run labeling)
+    ppi_file = [inp.ppi_dir filesep 'PPI_' inp.ppi_con '_' inp.voi_name '_sess' num2str(rct) '.mat'];
+    load(ppi_file,'PPI');
+    
 	% Session-specific scans, regressors, params
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).scans = ...
-		{inp.(['swfmri' num2str(r) '_nii'])};
+		cellstr(spm_select('expand',inp.(['fmri' num2str(r) '_nii'])));
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi = {''};
-	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress = ...
-		struct('name', {}, 'val', {});
-	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi_reg = ...
+	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(1) = ...
+		struct('name', {PPI.xY.name}, 'val', {PPI.Y});
+	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(2) = ...
+		struct('name', {PPI.name}, 'val', {PPI.ppi});
+    matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi_reg = ...
 		{fullfile(inp.out_dir,['motpar' num2str(r) '.txt'])};
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).hpf = hpf_sec;
 	
@@ -191,6 +143,15 @@ for k = 1:numc
                 - matlabbatch{3}.spm.stats.con.consess{c-numc}.tcon.weights;
         matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 end
+
+% Effects of interest contrasts per session to use with PPI generation
+c = c + 1;
+matlabbatch{3}.spm.stats.con.consess{c}.fcon.name = 'Effects of Interest';
+matlabbatch{3}.spm.stats.con.consess{c}.fcon.weights = [1 0 0 0
+                                                        0 1 0 0
+                                                        0 0 1 0
+                                                        0 0 0 1];
+matlabbatch{3}.spm.stats.con.consess{c}.fcon.sessrep = 'sess';
 
 
 %% Review design
