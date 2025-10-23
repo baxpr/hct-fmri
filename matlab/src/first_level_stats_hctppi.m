@@ -22,6 +22,52 @@ function first_level_stats_hctppi(inp)
 %  SPM.xX.X has condition vectors that are unfiltered and can be applied directly
 %  SPM.Sess(s).row,col gives us the elements to extract from SPM.xX.X
 
+
+%% FIXME FIXME
+%
+% Scaling the connectivity regressors? Shouldn't units already match across
+% subjects due to the scaling of the original data, assuming the PPI isn't
+% weirdly rescaled? Connectivity seems like it might call for z score
+% scaling, but that would have to be applied to the data and the design
+% matrix both to really make sense.
+%
+% Let's run both ways and review the regressor amplitudes, correlation
+% between the two PPI contrasts in the desmtx, and con images for the two
+% contrasts to be sure things are making sense.
+
+
+%%
+%heartPPI = load('../../OUTPUTS/ppi_hct/PPI_Heart_dAI_L_sess1.mat','PPI');
+%load('../../OUTPUTS/spm_hct/SPM.mat','SPM');
+
+% Get the task predictor for comparison
+%blockHeart = SPM.SPM.xX.X(SPM.SPM.Sess(1).row,SPM.SPM.Sess(1).col(2));
+
+% Use SPM's PPI boxcar and supersampled deconvolved time series to get the
+% deconvolved PPI for heart periods only
+%heart = heartPPI.PPI.xn .* heartPPI.PPI.psy.u;
+
+% Convolve with HRF and trim excess at end
+%heart = conv(full(heart),spm_hrf(SPM.SPM.xBF.dt));
+%heart = heart(1:numel(heartPPI.PPI.xn));
+
+% Downsample back to scan temporal resolution
+%heart = heart(SPM.SPM.xBF.T0:SPM.SPM.xBF.T:end);
+
+%figure(1); clf
+%plot([blockHeart zscore(heart)])
+%corr([blockHeart zscore(heart)])
+
+
+
+%%
+
+
+
+
+
+
+
 tag = ['hctppi_' inp.voi_name];
 
 % Filter param
@@ -73,6 +119,9 @@ matlabbatch{1}.spm.stats.fmri_spec.mthresh = -Inf;
 matlabbatch{1}.spm.stats.fmri_spec.mask = {[spm('dir') '/tpm/mask_ICV.nii']};
 matlabbatch{1}.spm.stats.fmri_spec.cvi = 'AR(1)';
 
+% get our previous SPM analysis (no PPIs)
+load(fullfile(inp.spm_dir,'SPM.mat'),'SPM');
+
 rct = 0;
 for r = runs
 
@@ -86,17 +135,33 @@ for r = runs
     ppi1 = load(ppi1_file,'PPI');
     ppi2_file = [inp.ppi_dir filesep 'PPI_Counting_' inp.voi_name '_sess' num2str(rct) '.mat'];
     ppi2 = load(ppi2_file,'PPI');
-    
+
+    % Get the task-specific connectivity regressors using SPM PPI as
+    % starting point
+    heart = ppi1.PPI.xn .* ppi1.PPI.psy.u;
+    heart = conv(full(heart),spm_hrf(SPM.xBF.dt));
+    heart = heart(1:numel(ppi1.PPI.xn));
+    heart = heart(SPM.xBF.T0:SPM.xBF.T:end);
+
+    counting = ppi2.PPI.xn .* ppi2.PPI.psy.u;
+    counting = conv(full(counting),spm_hrf(SPM.xBF.dt));
+    counting = counting(1:numel(ppi2.PPI.xn));
+    counting = counting(SPM.xBF.T0:SPM.xBF.T:end);
+
 	% Session-specific scans, regressors, params
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).scans = ...
 		cellstr(spm_select('expand',inp.(['fmri' num2str(r) '_nii'])));
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi = {''};
-	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(1) = ...
-		struct('name', {ppi1.PPI.xY.name}, 'val', {ppi1.PPI.Y});
-	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(2) = ...
-		struct('name', {ppi1.PPI.name}, 'val', {ppi1.PPI.ppi});
-	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(3) = ...
-		struct('name', {ppi2.PPI.name}, 'val', {ppi2.PPI.ppi});
+	%matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(1) = ...
+	%	struct('name', {ppi1.PPI.xY.name}, 'val', {ppi1.PPI.Y});
+	%matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(2) = ...
+	%	struct('name', {ppi1.PPI.name}, 'val', {ppi1.PPI.ppi});
+	%matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(3) = ...
+	%	struct('name', {ppi2.PPI.name}, 'val', {ppi2.PPI.ppi});
+    matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(1) = ...
+        struct('name', 'HeartConn', 'val', heart);
+    matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(2) = ...
+        struct('name', 'CountingConn', 'val', counting);
     matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi_reg = ...
 		{fullfile(inp.out_dir,['motpar' num2str(r) '.txt'])};
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).hpf = hpf_sec;
@@ -150,28 +215,23 @@ matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 -1 0 0 0];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = inp.voi_name;
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['HeartConn_' inp.voi_name];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 1 0];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['PPI_Heart_' inp.voi_name];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0 1 0];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['CountingConn_' inp.voi_name];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0 1];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['PPI_Counting_' inp.voi_name];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0 0 1];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['HeartConn_plus_CountingConn_' inp.voi_name];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0.5 0.5];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['PPI_Heart_plus_Counting_' inp.voi_name];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0 0.5 0.5];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
-
-c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['PPI_Heart_gt_Counting_' inp.voi_name];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0 1 -1];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['HeartConn_gt_CountingConn_' inp.voi_name];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 1 -1];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 % Inverse of all existing contrasts since SPM won't show us both sides
