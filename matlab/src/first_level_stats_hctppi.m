@@ -12,7 +12,7 @@ function first_level_stats_hctppi(inp)
 %    inp.ppi_dir       % Where to find PPI files
 %    inp.ppi_con       % 'Heart_gt_Counting'
 
-tag = 'hctppi';
+tag = ['hctppi_' inp.voi_name];
 
 % Filter param
 hpf_sec = str2double(inp.hpf_sec);
@@ -70,17 +70,23 @@ for r = runs
 
     % Find our PPI regressors for this session (by SPM count, not original
     % scanner run labeling)
-    ppi_file = [inp.ppi_dir filesep 'PPI_' inp.ppi_con '_' inp.voi_name '_sess' num2str(rct) '.mat'];
-    load(ppi_file,'PPI');
+    %ppi_file = [inp.ppi_dir filesep 'PPI_' inp.ppi_con '_' inp.voi_name '_sess' num2str(rct) '.mat'];
+    %load(ppi_file,'PPI');
+    ppi1_file = [inp.ppi_dir filesep 'PPI_Heart_' inp.voi_name '_sess' num2str(rct) '.mat'];
+    ppi1 = load(ppi1_file,'PPI');
+    ppi2_file = [inp.ppi_dir filesep 'PPI_Counting_' inp.voi_name '_sess' num2str(rct) '.mat'];
+    ppi2 = load(ppi2_file,'PPI');
     
 	% Session-specific scans, regressors, params
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).scans = ...
 		cellstr(spm_select('expand',inp.(['fmri' num2str(r) '_nii'])));
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi = {''};
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(1) = ...
-		struct('name', {PPI.xY.name}, 'val', {PPI.Y});
+		struct('name', {ppi1.PPI.xY.name}, 'val', {ppi1.PPI.Y});
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(2) = ...
-		struct('name', {PPI.name}, 'val', {PPI.ppi});
+		struct('name', {ppi1.PPI.name}, 'val', {ppi1.PPI.ppi});
+	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(3) = ...
+		struct('name', {ppi2.PPI.name}, 'val', {ppi2.PPI.ppi});
     matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi_reg = ...
 		{fullfile(inp.out_dir,['motpar' num2str(r) '.txt'])};
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).hpf = hpf_sec;
@@ -139,8 +145,23 @@ matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 1 0];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['PPI_' inp.ppi_con '_' inp.voi_name];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0 1];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['PPI_Heart_' inp.voi_name];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0 1 0];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
+
+c = c + 1;
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['PPI_Counting_' inp.voi_name];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0 0 1];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
+
+c = c + 1;
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['PPI_Heart_plus_Counting_' inp.voi_name];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0 0.5 0.5];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
+
+c = c + 1;
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['PPI_Heart_gt_Counting_' inp.voi_name];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0 1 -1];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 % Inverse of all existing contrasts since SPM won't show us both sides

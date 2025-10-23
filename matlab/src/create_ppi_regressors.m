@@ -42,9 +42,22 @@ for rct = 1:numel(SPM.Sess)
     matlabbatch{2}.spm.stats.ppi.spmmat = {spm_mat};
     matlabbatch{2}.spm.stats.ppi.type.ppi.voi = ...
         {[inp.spm_dir filesep 'VOI_' inp.voi_name '_' num2str(rct) '.mat']};
-    matlabbatch{2}.spm.stats.ppi.type.ppi.u = [2 1 1; 3 1 -1];
-    matlabbatch{2}.spm.stats.ppi.name = ['Heart_gt_Counting_' inp.voi_name '_sess' num2str(rct)];
+    matlabbatch{2}.spm.stats.ppi.type.ppi.u = [2 1 1];
+    matlabbatch{2}.spm.stats.ppi.name = ['Heart_' inp.voi_name '_sess' num2str(rct)];
+    %matlabbatch{2}.spm.stats.ppi.type.ppi.u = [2 1 1; 3 1 -1];
+    %matlabbatch{2}.spm.stats.ppi.name = ['Heart_gt_Counting_' inp.voi_name '_sess' num2str(rct)];
+    %matlabbatch{2}.spm.stats.ppi.type.ppi.u = [2 1 1];
+    %matlabbatch{2}.spm.stats.ppi.name = ['Heart_' inp.voi_name '_sess' num2str(rct)];
     matlabbatch{2}.spm.stats.ppi.disp = 1;
+
+    matlabbatch{3}.spm.stats.ppi.spmmat = {spm_mat};
+    matlabbatch{3}.spm.stats.ppi.type.ppi.voi = ...
+        {[inp.spm_dir filesep 'VOI_' inp.voi_name '_' num2str(rct) '.mat']};
+    matlabbatch{3}.spm.stats.ppi.type.ppi.u = [3 1 1];
+    matlabbatch{3}.spm.stats.ppi.name = ['Counting_' inp.voi_name '_sess' num2str(rct)];
+    matlabbatch{3}.spm.stats.ppi.disp = 1;
+
+
 
     save(fullfile(inp.ppi_dir, ...
         ['spmbatch_ppi_' inp.voi_name '_sess' num2str(rct) '.mat']),'matlabbatch')
