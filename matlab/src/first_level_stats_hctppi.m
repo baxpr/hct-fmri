@@ -12,6 +12,16 @@ function first_level_stats_hctppi(inp)
 %    inp.ppi_dir       % Where to find PPI files
 %    inp.ppi_con       % 'Heart_gt_Counting'
 
+% FIXME
+% Homemade condition-specific PPI regressors
+%  PPI.xn is the supersampled time series
+%  PPI.psy.u is the boxcar stimulus function (need conv/shift?)
+%  Then how to resample back to TR?
+% Or, simpler,
+%  PPI.Y is the VOI time series (or Y in the VOI file)
+%  SPM.xX.X has condition vectors that are unfiltered and can be applied directly
+%  SPM.Sess(s).row,col gives us the elements to extract from SPM.xX.X
+
 tag = ['hctppi_' inp.voi_name];
 
 % Filter param
