@@ -66,10 +66,10 @@ spm_dir = first_level_stats_hct_unsmoothed(inp);
 inp.spm_dir = spm_dir;
 inp.ppi_dir = fullfile(inp.out_dir,'ppi');
 if ~exist(inp.ppi_dir,'dir'), mkdir(inp.ppi_dir), end
-inp.voi_label_image = 'atlas-BAISins_space-MNI152NLin6Asym_res-02_dseg.nii';
+inp.voi_label_image = which('atlas-BAISins_space-MNI152NLin6Asym_res-02_dseg.nii');
 
 % Get ROI list
-roilist = readtable('atlas-BAISins_dseg.tsv','FileType','text');
+roilist = readtable(which('atlas-BAISins_dseg.tsv'),'FileType','text');
 
 % VOI and PPIs for each ROI
 for roi = roilist.index
