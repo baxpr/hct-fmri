@@ -1,72 +1,12 @@
 function first_level_stats_hct_manppi(inp)
 
-% Block design, four predictors: anticipate, heart, sun, fixation
-% Some 5-sec rest sections are left out in the model (motion is expected)
-% Contrasts of interest will be
-%      heart vs fixation
-%      sun vs fixation
-%      heart vs sun
+% Re-run the HCT first level stats, but add PPI regressors for a seed ROI.
 %
-% PPI regressors are added
-%    inp.voi_name      % VOI name
-%    inp.ppi_dir       % Where to find PPI files
-%    inp.ppi_con       % 'Heart_gt_Counting'
-
-% FIXME
-% Homemade condition-specific PPI regressors
-%  PPI.xn is the supersampled time series
-%  PPI.psy.u is the boxcar stimulus function (need conv/shift?)
-%  Then how to resample back to TR?
-% Or, simpler,
-%  PPI.Y is the VOI time series (or Y in the VOI file)
-%  SPM.xX.X has condition vectors that are unfiltered and can be applied directly
-%  SPM.Sess(s).row,col gives us the elements to extract from SPM.xX.X
-
-
-%% FIXME FIXME
+% Additional inputs needed:
 %
-% Scaling the connectivity regressors? Shouldn't units already match across
-% subjects due to the scaling of the original data, assuming the PPI isn't
-% weirdly rescaled? Connectivity seems like it might call for z score
-% scaling, but that would have to be applied to the data and the design
-% matrix both to really make sense.
-%
-% Let's run both ways and review the regressor amplitudes, correlation
-% between the two PPI contrasts in the desmtx, and con images for the two
-% contrasts to be sure things are making sense.
-
-
-%%
-%heartPPI = load('../../OUTPUTS/ppi_hct/PPI_Heart_dAI_L_sess1.mat','PPI');
-%load('../../OUTPUTS/spm_hct/SPM.mat','SPM');
-
-% Get the task predictor for comparison
-%blockHeart = SPM.SPM.xX.X(SPM.SPM.Sess(1).row,SPM.SPM.Sess(1).col(2));
-
-% Use SPM's PPI boxcar and supersampled deconvolved time series to get the
-% deconvolved PPI for heart periods only
-%heart = heartPPI.PPI.xn .* heartPPI.PPI.psy.u;
-
-% Convolve with HRF and trim excess at end
-%heart = conv(full(heart),spm_hrf(SPM.SPM.xBF.dt));
-%heart = heart(1:numel(heartPPI.PPI.xn));
-
-% Downsample back to scan temporal resolution
-%heart = heart(SPM.SPM.xBF.T0:SPM.SPM.xBF.T:end);
-
-%figure(1); clf
-%plot([blockHeart zscore(heart)])
-%corr([blockHeart zscore(heart)])
-
-
-
-%%
-
-
-
-
-
-
+%  spm_dir       Location of the original non-PPI first level stats result
+%  ppi_dir       Location of VOI/PPI files generated with create_ppi_regressors
+%  voi_name      Name of the VOI to use as a seed
 
 tag = ['hct_manppi_' inp.voi_name];
 
@@ -129,35 +69,27 @@ for r = runs
 
     % Find our PPI regressors for this session (by SPM count, not original
     % scanner run labeling)
-    %ppi_file = [inp.ppi_dir filesep 'PPI_' inp.ppi_con '_' inp.voi_name '_sess' num2str(rct) '.mat'];
-    %load(ppi_file,'PPI');
-    ppi1_file = [inp.ppi_dir filesep 'PPI_Heart_' inp.voi_name '_sess' num2str(rct) '.mat'];
-    ppi1 = load(ppi1_file,'PPI');
-    ppi2_file = [inp.ppi_dir filesep 'PPI_Counting_' inp.voi_name '_sess' num2str(rct) '.mat'];
-    ppi2 = load(ppi2_file,'PPI');
+    heartppi_file = [inp.ppi_dir filesep 'PPI_Heart_' inp.voi_name '_sess' num2str(rct) '.mat'];
+    heartppi = load(heartppi_file,'PPI');
+    countppi_file = [inp.ppi_dir filesep 'PPI_Counting_' inp.voi_name '_sess' num2str(rct) '.mat'];
+    countppi = load(countppi_file,'PPI');
 
     % Get the task-specific connectivity regressors using SPM PPI as
     % starting point
-    heart = ppi1.PPI.xn .* ppi1.PPI.psy.u;
+    heart = heartppi.PPI.xn .* heartppi.PPI.psy.u;
     heart = conv(full(heart),spm_hrf(SPM.xBF.dt));
-    heart = heart(1:numel(ppi1.PPI.xn));
+    heart = heart(1:numel(heartppi.PPI.xn));
     heart = heart(SPM.xBF.T0:SPM.xBF.T:end);
 
-    counting = ppi2.PPI.xn .* ppi2.PPI.psy.u;
+    counting = countppi.PPI.xn .* countppi.PPI.psy.u;
     counting = conv(full(counting),spm_hrf(SPM.xBF.dt));
-    counting = counting(1:numel(ppi2.PPI.xn));
+    counting = counting(1:numel(countppi.PPI.xn));
     counting = counting(SPM.xBF.T0:SPM.xBF.T:end);
 
 	% Session-specific scans, regressors, params
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).scans = ...
 		cellstr(spm_select('expand',inp.(['fmri' num2str(r) '_nii'])));
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi = {''};
-	%matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(1) = ...
-	%	struct('name', {ppi1.PPI.xY.name}, 'val', {ppi1.PPI.Y});
-	%matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(2) = ...
-	%	struct('name', {ppi1.PPI.name}, 'val', {ppi1.PPI.ppi});
-	%matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(3) = ...
-	%	struct('name', {ppi2.PPI.name}, 'val', {ppi2.PPI.ppi});
     matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(1) = ...
         struct('name', 'HeartConn', 'val', heart);
     matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(2) = ...
@@ -244,15 +176,6 @@ for k = 1:numc
                 - matlabbatch{3}.spm.stats.con.consess{c-numc}.tcon.weights;
         matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 end
-
-% Effects of interest contrasts per session to use with PPI generation
-c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.fcon.name = 'Effects of Interest';
-matlabbatch{3}.spm.stats.con.consess{c}.fcon.weights = [1 0 0 0
-                                                        0 1 0 0
-                                                        0 0 1 0
-                                                        0 0 0 1];
-matlabbatch{3}.spm.stats.con.consess{c}.fcon.sessrep = 'sess';
 
 
 %% Review design

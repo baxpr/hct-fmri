@@ -1,4 +1,4 @@
-function first_level_stats_hct(inp)
+function spm_dir = first_level_stats_hct(inp)
 
 % Block design, four predictors: anticipate, heart, sun, fixation
 % Some 5-sec rest sections are left out in the model (motion is expected)
@@ -44,8 +44,8 @@ timings = get_timings(inp.eprime_csv);
 
 %% Design
 clear matlabbatch
-matlabbatch{1}.spm.stats.fmri_spec.dir = ...
-	{fullfile(inp.out_dir,['spm_' tag])};
+spm_dir = fullfile(inp.out_dir,['spm_' tag]);
+matlabbatch{1}.spm.stats.fmri_spec.dir = {spm_dir};
 matlabbatch{1}.spm.stats.fmri_spec.timing.units = 'secs';
 matlabbatch{1}.spm.stats.fmri_spec.timing.RT = tr;
 matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = 16;

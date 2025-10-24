@@ -1,4 +1,4 @@
-function matlab_main(inp)
+function matlab_main_ppi(inp)
 
 spm('defaults','fmri')
 
@@ -57,6 +57,28 @@ for fmri_nii = {'fmri1_nii','fmri2_nii','fmri3_nii','fmri4_nii'}
 
 end
 
-% First level stats and contrasts
-first_level_stats_hct(inp);
+% First level stats and contrasts, no PPI yet
+spm_dir = first_level_stats_hct(inp);
+
+% Set up more inputs for PPI stuff (ROI set is hardcoded)
+inp.spm_dir = spm_dir;
+inp.ppi_dir = fullfile(inp.out_dir,'ppi');
+if ~exist(inp.ppi_dir,'dir'), mkdir(inp.ppi_dir), end
+inp.voi_label_image = 'atlas-BAISins_space-MNI152NLin6Asym_res-02_dseg.nii';
+
+% Get ROI list
+roilist = readtable('atlas-BAISins_dseg.tsv','FileType','text');
+
+% VOI and PPIs for each ROI
+for roi = roilist.index
+    inp.voi_label_index = roi;
+    inp.voi_name = roilist.label{roilist.index==roi};
+    create_ppi_regressors(inp);
+end
+
+% First level stats with PPI for each ROI
+for roi = roilist.index
+    inp.voi_name = roilist.label{roilist.index==roi};
+    first_level_stats_hct_manppi(inp)
+end
 

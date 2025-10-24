@@ -22,7 +22,7 @@ parse(P,varargin{:});
 disp(P.Results)
 
 % Run the actual pipeline
-matlab_main(P.Results);
+matlab_main_ppi(P.Results);
 
 % Exit
 if isdeployed
