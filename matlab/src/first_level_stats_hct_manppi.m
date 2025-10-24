@@ -1,4 +1,4 @@
-function first_level_stats_hctppi(inp)
+function first_level_stats_hct_manppi(inp)
 
 % Block design, four predictors: anticipate, heart, sun, fixation
 % Some 5-sec rest sections are left out in the model (motion is expected)
@@ -68,7 +68,7 @@ function first_level_stats_hctppi(inp)
 
 
 
-tag = ['hctppi_' inp.voi_name];
+tag = ['hct_manppi_' inp.voi_name];
 
 % Filter param
 hpf_sec = str2double(inp.hpf_sec);
