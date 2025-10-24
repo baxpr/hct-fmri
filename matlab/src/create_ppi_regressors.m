@@ -44,10 +44,6 @@ for rct = 1:numel(SPM.Sess)
         {[inp.spm_dir filesep 'VOI_' inp.voi_name '_' num2str(rct) '.mat']};
     matlabbatch{2}.spm.stats.ppi.type.ppi.u = [2 1 1];
     matlabbatch{2}.spm.stats.ppi.name = ['Heart_' inp.voi_name '_sess' num2str(rct)];
-    %matlabbatch{2}.spm.stats.ppi.type.ppi.u = [2 1 1; 3 1 -1];
-    %matlabbatch{2}.spm.stats.ppi.name = ['Heart_gt_Counting_' inp.voi_name '_sess' num2str(rct)];
-    %matlabbatch{2}.spm.stats.ppi.type.ppi.u = [2 1 1];
-    %matlabbatch{2}.spm.stats.ppi.name = ['Heart_' inp.voi_name '_sess' num2str(rct)];
     matlabbatch{2}.spm.stats.ppi.disp = 1;
 
     matlabbatch{3}.spm.stats.ppi.spmmat = {spm_mat};
@@ -56,8 +52,6 @@ for rct = 1:numel(SPM.Sess)
     matlabbatch{3}.spm.stats.ppi.type.ppi.u = [3 1 1];
     matlabbatch{3}.spm.stats.ppi.name = ['Counting_' inp.voi_name '_sess' num2str(rct)];
     matlabbatch{3}.spm.stats.ppi.disp = 1;
-
-
 
     save(fullfile(inp.ppi_dir, ...
         ['spmbatch_ppi_' inp.voi_name '_sess' num2str(rct) '.mat']),'matlabbatch')
@@ -70,16 +64,5 @@ end
 copyfile([inp.spm_dir filesep 'VOI*'],inp.ppi_dir);
 copyfile([inp.spm_dir filesep 'PPI*'],inp.ppi_dir);
 
-
 % At this point, what we have is the PPI time series for a specific ROI.
-
-% Andy advises concatenating runs:
-% https://andysbrainbook.readthedocs.io/en/latest/SPM/SPM_Short_Course/SPM_PPI.html
-% But concatenating movement regressors means they will not be
-% completely removed, as weights may vary between runs. Better to center
-% these and put in their own sections per run.
-%
-% Note also that Andy includes both conditions in a single PPI with a 1 -1
-% contrast, e.g.
-%    ppi.u = [2 1 1; 3 1 -1]  % Heart gt Counting
 

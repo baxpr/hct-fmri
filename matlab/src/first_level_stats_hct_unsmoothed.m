@@ -1,14 +1,13 @@
-function first_level_stats_hct_manppi(inp)
+function spm_dir = first_level_stats_hct_unsmoothed(inp)
 
-% Re-run the HCT first level stats, but add PPI regressors for a seed ROI.
-%
-% Additional inputs needed:
-%
-%  spm_dir       Location of the original non-PPI first level stats result
-%  ppi_dir       Location of VOI/PPI files generated with create_ppi_regressors
-%  voi_name      Name of the VOI to use as a seed
+% Block design, four predictors: anticipate, heart, sun, fixation
+% Some 5-sec rest sections are left out in the model (motion is expected)
+% Contrasts of interest will be
+%      heart vs fixation
+%      sun vs fixation
+%      heart vs sun
 
-tag = ['hct_manppi_' inp.voi_name];
+tag = 'hct';
 
 % Filter param
 hpf_sec = str2double(inp.hpf_sec);
@@ -45,8 +44,8 @@ timings = get_timings(inp.eprime_csv);
 
 %% Design
 clear matlabbatch
-matlabbatch{1}.spm.stats.fmri_spec.dir = ...
-	{fullfile(inp.out_dir,['spm_' tag])};
+spm_dir = fullfile(inp.out_dir,['spm_' tag]);
+matlabbatch{1}.spm.stats.fmri_spec.dir = {spm_dir};
 matlabbatch{1}.spm.stats.fmri_spec.timing.units = 'secs';
 matlabbatch{1}.spm.stats.fmri_spec.timing.RT = tr;
 matlabbatch{1}.spm.stats.fmri_spec.timing.fmri_t = 16;
@@ -59,42 +58,18 @@ matlabbatch{1}.spm.stats.fmri_spec.mthresh = -Inf;
 matlabbatch{1}.spm.stats.fmri_spec.mask = {[spm('dir') '/tpm/mask_ICV.nii']};
 matlabbatch{1}.spm.stats.fmri_spec.cvi = 'AR(1)';
 
-% get our previous SPM analysis (no PPIs)
-load(fullfile(inp.spm_dir,'SPM.mat'),'SPM');
-
 rct = 0;
 for r = runs
 
     rct = rct + 1;
 
-    % Find our PPI regressors for this session (by SPM count, not original
-    % scanner run labeling)
-    heartppi_file = [inp.ppi_dir filesep 'PPI_Heart_' inp.voi_name '_sess' num2str(rct) '.mat'];
-    heartppi = load(heartppi_file,'PPI');
-    countppi_file = [inp.ppi_dir filesep 'PPI_Counting_' inp.voi_name '_sess' num2str(rct) '.mat'];
-    countppi = load(countppi_file,'PPI');
-
-    % Get the task-specific connectivity regressors using SPM PPI as
-    % starting point
-    heart = heartppi.PPI.xn .* heartppi.PPI.psy.u;
-    heart = conv(full(heart),spm_hrf(SPM.xBF.dt));
-    heart = heart(1:numel(heartppi.PPI.xn));
-    heart = heart(SPM.xBF.T0:SPM.xBF.T:end);
-
-    counting = countppi.PPI.xn .* countppi.PPI.psy.u;
-    counting = conv(full(counting),spm_hrf(SPM.xBF.dt));
-    counting = counting(1:numel(countppi.PPI.xn));
-    counting = counting(SPM.xBF.T0:SPM.xBF.T:end);
-
 	% Session-specific scans, regressors, params
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).scans = ...
-		cellstr(spm_select('expand',inp.(['swfmri' num2str(r) '_nii'])));
+		{inp.(['wfmri' num2str(r) '_nii'])};
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi = {''};
-    matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(1) = ...
-        struct('name', 'HeartConn', 'val', heart);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress(2) = ...
-        struct('name', 'CountingConn', 'val', counting);
-    matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi_reg = ...
+	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).regress = ...
+		struct('name', {}, 'val', {});
+	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).multi_reg = ...
 		{fullfile(inp.out_dir,['motpar' num2str(r) '.txt'])};
 	matlabbatch{1}.spm.stats.fmri_spec.sess(rct).hpf = hpf_sec;
 	
@@ -128,42 +103,22 @@ c = 0;
 
 c = c + 1;
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Anticipate gt Fixation';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [1 0 0 -1 0 0];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [1 0 0 -1];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Heart gt Fixation';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 0 -1 0 0];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 0 -1];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Counting gt Fixation';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 1 -1 0 0];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 1 -1];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 c = c + 1;
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = 'Heart gt Counting';
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 -1 0 0 0];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
-
-c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['HeartConn_' inp.voi_name];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 1 0];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
-
-c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['CountingConn_' inp.voi_name];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0 1];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
-
-c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['HeartConn_plus_CountingConn_' inp.voi_name];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 0.5 0.5];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
-
-c = c + 1;
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.name = ['HeartConn_gt_CountingConn_' inp.voi_name];
-matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 0 0 0 1 -1];
+matlabbatch{3}.spm.stats.con.consess{c}.tcon.weights = [0 1 -1 0];
 matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 
 % Inverse of all existing contrasts since SPM won't show us both sides
@@ -176,6 +131,15 @@ for k = 1:numc
                 - matlabbatch{3}.spm.stats.con.consess{c-numc}.tcon.weights;
         matlabbatch{3}.spm.stats.con.consess{c}.tcon.sessrep = 'replsc';
 end
+
+% Effects of interest contrasts per session to use with PPI generation
+c = c + 1;
+matlabbatch{3}.spm.stats.con.consess{c}.fcon.name = 'Effects of Interest';
+matlabbatch{3}.spm.stats.con.consess{c}.fcon.weights = [1 0 0 0
+                                                        0 1 0 0
+                                                        0 0 1 0
+                                                        0 0 0 1];
+matlabbatch{3}.spm.stats.con.consess{c}.fcon.sessrep = 'sess';
 
 
 %% Review design

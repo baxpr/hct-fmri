@@ -22,6 +22,7 @@ inp.wmeanfmri_nii = fullfile(inp.out_dir,['w' n e]);
 for fmri_nii = {'fmri1_nii','fmri2_nii','fmri3_nii','fmri4_nii'}
 
     if strcmp(inp.(fmri_nii{1}),'NONE')
+        inp.(['w' fmri_nii{1}]) = 'NONE';
         inp.(['sw' fmri_nii{1}]) = 'NONE';
     else
 
@@ -57,8 +58,9 @@ for fmri_nii = {'fmri1_nii','fmri2_nii','fmri3_nii','fmri4_nii'}
 
 end
 
-% First level stats and contrasts, no PPI yet
-spm_dir = first_level_stats_hct(inp);
+% First level stats and contrasts, no PPI yet. We use unsmoothed images so
+% that ROIs are as specified, not larger due to smoothing
+spm_dir = first_level_stats_hct_unsmoothed(inp);
 
 % Set up more inputs for PPI stuff (ROI set is hardcoded)
 inp.spm_dir = spm_dir;
