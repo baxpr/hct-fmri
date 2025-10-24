@@ -1,5 +1,7 @@
 
+
 %%
+spm('defaults','fmri')
 inp = struct( ...
     'hpf_sec', '300', ...
     'motpar1_txt', '../../OUTPUTS/motpar1.txt', ...
@@ -20,6 +22,7 @@ first_level_stats_hct(inp);
 
 
 %%
+spm('defaults','fmri')
 inp = struct( ...
     'spm_dir', '../../OUTPUTS/spm_hct', ...
     'ppi_dir', '../../OUTPUTS/ppi_hct', ...
@@ -31,6 +34,7 @@ create_ppi_regressors(inp);
 
 
 %%
+spm('defaults','fmri')
 inp = struct( ...
     'hpf_sec', '300', ...
     'motpar1_txt', '../../OUTPUTS/motpar1.txt', ...
@@ -52,7 +56,12 @@ inp = struct( ...
 
 first_level_stats_hct_ppi(inp);
 
-
+% Contrasts:
+% 5  'dAI_L'
+% 6  'PPI_Heart_dAI_L'
+% 7  'PPI_Counting_dAI_L'
+% 8  'PPI_Heart_plus_Counting_dAI_L'
+% 9  'PPI_Heart_gt_Counting_dAI_L'
 
 
 %%
@@ -75,4 +84,10 @@ inp = struct( ...
     );
 
 first_level_stats_hct_manppi(inp);
+
+% Contrasts:
+% 5  'HeartConn_dAI_L'
+% 6  'CountingConn_dAI_L'
+% 7  'HeartConn_plus_CountingConn_dAI_L'
+% 8  'HeartConn_gt_CountingConn_dAI_L'
 
