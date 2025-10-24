@@ -72,14 +72,14 @@ inp.voi_label_image = which('atlas-BAISins_space-MNI152NLin6Asym_res-02_dseg.nii
 roilist = readtable(which('atlas-BAISins_dseg.tsv'),'FileType','text');
 
 % VOI and PPIs for each ROI
-for roi = roilist.index
+for roi = roilist.index'
     inp.voi_label_index = roi;
     inp.voi_name = roilist.label{roilist.index==roi};
     create_ppi_regressors(inp);
 end
 
 % First level stats with PPI for each ROI
-for roi = roilist.index
+for roi = roilist.index'
     inp.voi_name = roilist.label{roilist.index==roi};
     first_level_stats_hct_manppi(inp)
 end
