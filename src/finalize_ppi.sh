@@ -5,7 +5,7 @@ echo Running $(basename "${BASH_SOURCE}")
 cd "${out_dir}"
 
 # Zip nifti files in SPM outputs
-for d in spm_hct* ppi; do
+for d in spm_hct spm_hct_manppi* ppi; do
     gzip "${d}"/*.nii
 done
 
