@@ -45,5 +45,5 @@ done
 
 # Capture the atlas
 mkdir ATLAS
-cp $(dirname "${BASH_SOURCE}")/matlab/src/atlas* ATLAS
+cp $(dirname "${BASH_SOURCE}")/../matlab/src/atlas* ATLAS
 
