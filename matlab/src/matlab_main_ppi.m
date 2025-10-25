@@ -35,7 +35,7 @@ for fmri_nii = {'fmri1_nii','fmri2_nii','fmri3_nii','fmri4_nii'}
         job.out{1}.pull.interp = 1;
         job.out{1}.pull.mask = 0;
         job.out{1}.pull.fwhm = [0 0 0];
-        %FIXME%spm_deformations(job);
+        spm_deformations(job);
 
         % Get filename of warped image
         [~,n,e] = fileparts(inp.(fmri_nii{1}));
@@ -48,7 +48,7 @@ for fmri_nii = {'fmri1_nii','fmri2_nii','fmri3_nii','fmri4_nii'}
         matlabbatch{1}.spm.spatial.smooth.dtype = 0;
         matlabbatch{1}.spm.spatial.smooth.im = 0;
         matlabbatch{1}.spm.spatial.smooth.prefix = 's';
-        %FIXME%spm_jobman('run',matlabbatch);
+        spm_jobman('run',matlabbatch);
 
         % Get filename of smoothed warped image
         [~,n,e] = fileparts(inp.(['w' fmri_nii{1}]));
