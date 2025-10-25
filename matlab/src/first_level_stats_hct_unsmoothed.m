@@ -14,10 +14,10 @@ hpf_sec = str2double(inp.hpf_sec);
 
 % Select available runs
 runs =[];
-if ~strcmp(inp.fmri1_nii,'NONE'), runs = [runs 1]; end
-if ~strcmp(inp.fmri2_nii,'NONE'), runs = [runs 2]; end
-if ~strcmp(inp.fmri3_nii,'NONE'), runs = [runs 3]; end
-if ~strcmp(inp.fmri4_nii,'NONE'), runs = [runs 4]; end
+if ~strcmp(inp.wfmri1_nii,'NONE'), runs = [runs 1]; end
+if ~strcmp(inp.wfmri2_nii,'NONE'), runs = [runs 2]; end
+if ~strcmp(inp.wfmri3_nii,'NONE'), runs = [runs 3]; end
+if ~strcmp(inp.wfmri4_nii,'NONE'), runs = [runs 4]; end
 
 
 % Save motion params as .mat
@@ -28,10 +28,10 @@ for r = runs
 end
 
 % Get TRs and check
-N = nifti(inp.(['fmri' num2str(runs(1)) '_nii']));
+N = nifti(inp.(['wfmri' num2str(runs(1)) '_nii']));
 tr = N.timing.tspace;
 for r = runs(2:end)
-	N = nifti(inp.(['fmri' num2str(r) '_nii']));
+	N = nifti(inp.(['wfmri' num2str(r) '_nii']));
 	if abs(N.timing.tspace-tr) > 0.001
 		error('TR not matching for run %d',r)
 	end
