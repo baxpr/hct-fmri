@@ -1,0 +1,103 @@
+# https://github.com/baxpr/hct-fmri
+# Requires cat12, multiatlas/slant
+---
+procyamlversion: 3.0.0-dev.0
+containers:
+  - name: hct-fmri
+    path: hct-fmri_v2.0.0.sif
+    source: docker://baxterprogers/hct-fmri:v2.0.0
+requirements:
+  walltime: 0-8
+  memory: 8G
+
+inputs:
+
+  xnat:
+
+    filters:
+      - type: match
+        inputs: scan_t1,assr_cat12/t1scan
+      - type: match
+        inputs: scan_t1,assr_slant/scan_t1
+        
+    scans:
+
+      - name: scan_t1
+        types: 'cs_T1W_3D_TFE_32 channel'
+        skip_unusable: True
+
+      - name: scan_fmri1
+        types: HCT_Run1
+        resources:
+          - {resource: NIFTI, fmatch: '*.nii.gz', fdest: fmri1.nii.gz}
+          - {resource: EPRIME, fmatch: '*.txt', fdest: eprime.txt}
+        needs_qc: True
+
+      - name: scan_fmri2
+        types: HCT_Run2
+        resources:
+          - {resource: NIFTI, fmatch: '*.nii.gz', fdest: fmri2.nii.gz}
+        needs_qc: True
+
+      - name: scan_fmri3
+        types: HCT_Run3
+        resources:
+          - {resource: NIFTI, fmatch: '*.nii.gz', fdest: fmri3.nii.gz}
+        needs_qc: True
+
+      - name: scan_fmri4
+        types: HCT_Run4
+        resources:
+          - {resource: NIFTI, fmatch: '*.nii.gz', fdest: fmri4.nii.gz}
+        needs_qc: True
+
+      - name: scan_fmritopup
+        types: HCT_TopUp
+        resources:
+          - {resource: NIFTI, fmatch: '*.nii.gz', fdest: fmritopup.nii.gz}
+        needs_qc: True
+
+    assessors:
+
+      - name: assr_cat12
+        proctypes: cat12_ss2p0_v2
+        resources:
+          - {resource: DEF_FWD, fmatch: '*.nii.gz', fdest: y_deffwd.nii.gz}
+          - {resource: BIAS_CORR, fmatch: '*.nii.gz', fdest: biascorr.nii.gz}
+          - {resource: BIAS_NORM, fmatch: '*.nii.gz', fdest: biasnorm.nii.gz}
+          - {resource: ICV_NATIVE, fmatch: '*.nii.gz', fdest: icv_native.nii.gz}
+
+      - name: assr_slant
+        proctypes: slant_cpu_v1
+        resources:
+          - {resource: SEG, ftype: FILE, fmatch: '*.nii.gz', fdest: seg.nii.gz}
+
+outputs:
+  - pdf: hct-fmri.pdf
+  - {path: '.', type: DIR, resource: all_outputs}
+#  - dir: spm_hct
+#  - {path: wctrrfmri_mean_all.nii.gz, type: FILE, resource: MEANFMRI_MNI}
+
+
+command: 
+  type: singularity_run
+  container: hct-fmri
+  args: >-
+    --fmri1_niigz /INPUTS/fmri1.nii.gz
+    --fmri2_niigz /INPUTS/fmri2.nii.gz
+    --fmri3_niigz /INPUTS/fmri3.nii.gz
+    --fmri4_niigz /INPUTS/fmri4.nii.gz
+    --fmritopup_niigz /INPUTS/fmritopup.nii.gz
+    --seg_niigz /INPUTS/seg.nii.gz
+    --icv_niigz /INPUTS/icv_native.nii.gz
+    --deffwd_niigz /INPUTS/y_deffwd.nii.gz
+    --biascorr_niigz /INPUTS/biascorr.nii.gz
+    --biasnorm_niigz /INPUTS/biasnorm.nii.gz
+    --eprime_txt /INPUTS/eprime.txt
+    --pedir "+j"
+    --vox_mm 2
+    --hpf_sec 300
+    --fwhm_mm 6
+    --out_dir /OUTPUTS
+
+jobtemplate: job_template_v3.txt
