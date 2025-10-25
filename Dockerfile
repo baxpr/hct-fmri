@@ -32,4 +32,4 @@ ENV PATH /opt/hct-fmri/src:/opt/hct-fmri/matlab/bin:${PATH}
 RUN run_spm12.sh ${MATLAB_RUNTIME} function quit
 
 # Entrypoint
-ENTRYPOINT ["pipeline_entrypoint.sh"]
+ENTRYPOINT ["pipeline_entrypoint_ppi.sh"]
