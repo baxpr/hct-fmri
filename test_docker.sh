@@ -7,7 +7,7 @@ docker run \
     --fmri1_niigz /INPUTS/run1.nii.gz \
     --fmri2_niigz /INPUTS/run2.nii.gz \
     --fmri3_niigz /INPUTS/run3.nii.gz \
-    --fmri4_niigz NONE \
+    --fmri4_niigz /INPUTS/run4.nii.gz \
     --fmritopup_niigz /INPUTS/topup.nii.gz \
     --seg_niigz /INPUTS/seg.nii.gz \
     --icv_niigz /INPUTS/p0t1.nii.gz \

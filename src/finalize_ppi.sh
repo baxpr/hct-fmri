@@ -4,6 +4,10 @@ echo Running $(basename "${BASH_SOURCE}")
 
 cd "${out_dir}"
 
+# Clean up spm_hct
+rm spm_hct/PPI*
+rm spm_hct/VOI*
+
 # Zip nifti files in SPM outputs
 for d in spm_hct spm_hct_manppi* ppi; do
     gzip "${d}"/*.nii
@@ -41,5 +45,5 @@ done
 
 # Capture the atlas
 mkdir ATLAS
-cp $(dirname "${BASH_SOURCE}")/matlab/src/atlas* VOIS
+cp $(dirname "${BASH_SOURCE}")/matlab/src/atlas* ATLAS
 

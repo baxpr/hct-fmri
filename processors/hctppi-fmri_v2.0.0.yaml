@@ -74,10 +74,14 @@ inputs:
 
 outputs:
   - pdf: hct-fmri.pdf
-  - {path: '.', type: DIR, resource: all_outputs}
-#  - dir: spm_hct
-#  - {path: wctrrfmri_mean_all.nii.gz, type: FILE, resource: MEANFMRI_MNI}
-
+  - {path: wctrrfmri_mean_all.nii.gz, type: FILE, resource: MEANFMRI_MNI}
+  - dir: WFMRI
+  - dir: SWFMRI
+  - dir: PPI_RESULTS
+  - dir: PPI_VOI_WORKFILES
+  - dir: ATLAS
+  - dir: spm_hct
+  - dir: spm_hct_manppi_dAI_L
 
 command: 
   type: singularity_run
