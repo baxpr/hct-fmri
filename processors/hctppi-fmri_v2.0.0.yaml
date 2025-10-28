@@ -75,13 +75,16 @@ inputs:
 outputs:
   - pdf: hct-fmri.pdf
   - {path: wctrrfmri_mean_all.nii.gz, type: FILE, resource: MEANFMRI_MNI}
-  - dir: WFMRI
-  - dir: SWFMRI
   - dir: PPI_RESULTS
   - dir: PPI_VOI_WORKFILES
   - dir: ATLAS
   - dir: spm_hct
   - dir: spm_hct_manppi_dAI_L
+# Preprocessed fmri are huge, so let's skip them
+#  - dir: WFMRI
+#  - dir: SWFMRI
+
+
 
 command: 
   type: singularity_run
